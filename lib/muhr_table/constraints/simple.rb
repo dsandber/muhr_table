@@ -1,12 +1,14 @@
 module MuhrTable
-  class Simple(Constraint)
-    OPERANDS=['<','>','<=','>=','=','!=','LIKE']
+  class Simple < Constraint
+    OPERATORS=['<','>','<=','>=','=','!=','like','ilike','not like', 'not ilike']
+    attr_reader :name, :operand, :operator
 
-    def initialize(operator, operand)
-      raise WiceException.new("invalid operator: #{operator}") if not OPERANDS.include?(operand)
+    def initialize(name, operator, operand)
+      raise MuhrException.new("invalid operator: #{operator}") if not OPERATORS.include?(operator)
       
-      self.operator=operator
-      self.operand=operand
+      @name=name
+      @operator=operator
+      @operand=operand
     end
   end
 end

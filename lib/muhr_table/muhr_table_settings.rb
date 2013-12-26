@@ -37,6 +37,10 @@ module MuhrTable
       @name_to_column.include?(name)
     end
 
+    def null_text( name )
+      @name_to_column[name].null_text
+    end
+
     def before_row( &block )
       @before_row_block = block
     end

@@ -7,7 +7,7 @@ require "muhr_table/version"
 module MuhrTable
   # require_reloader won't work if we initialize here.  This will make developing the muhr_table gem
   # unpleasant because constant bundle and server restart will be needed
-  GEM_UNDER_DEVELOPMENT=true
+  GEM_UNDER_DEVELOPMENT=false
 
    # This empty class makes so that Rails will search the lib/assets directory for assets such as the CSS file
    class Engine < Rails::Engine

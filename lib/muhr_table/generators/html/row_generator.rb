@@ -30,7 +30,7 @@ module MuhrTable
       else
         content = row[col.name] 
       end
-      content ||= ''.html_safe
+      content ||= (col.null_text || '').html_safe 
       content_tag :td, content, td_options 
     end
 

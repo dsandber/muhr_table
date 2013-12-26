@@ -8,6 +8,10 @@ module MuhrTable
       @block = block
     end
 
+    def null_text
+      @opts[:null_text]
+    end
+
     def allow_sorting?
       @opts[:allow_sorting]!=false
     end

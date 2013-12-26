@@ -6,12 +6,16 @@ require 'muhr_table/muhr_init_data'
 module MuhrTable
   module ActionControllerMethods
     def muhr_init( backing, opts )
+     ensure_valid_options opts, [:backing_opts, :per_page, :sort_column, :sort_dir]
+
+      backing_opts = opts.delete(:backing_opts) || {}
+
       if backing.is_a?(Backend)
         backing = backing
       elsif backing.is_a?(ActiveRecord::Relation)
-        backing = ActiveRecordBackend.new( backing )
+        backing = ActiveRecordBackend.new( backing, backing_opts )
       elsif backing.ancestors.index(ActiveRecord::Base)
-        backing = ActiveRecordBackend.new( backing )
+        backing = ActiveRecordBackend.new( backing, backing_opts )
       else
         raise MuhrException.new('Backing must be an ActiveRecord, Relation, or Backend' )
       end     

@@ -2,7 +2,7 @@ module MuhrTable
   INPUT_PREFIX="muhr_f_"
 
   class QueryStringHandler
-    attr_reader :sort_column, :sort_dir, :filter_hash
+    attr_reader :sort_column, :sort_dir
 
     def initialize(view)
       @view=view
@@ -13,7 +13,6 @@ module MuhrTable
       @query_hash = Rack::Utils.parse_nested_query @view.request.query_string
       @sort_dir=nil
       @sort_column=nil
-      @filter_hash = build_filter_hash
       sort = @query_hash['sort']
       if sort        
         if sort[0]=='-'
@@ -34,12 +33,14 @@ module MuhrTable
       "#{INPUT_PREFIX}#{column.name.to_s}"
     end
 
-    def build_filter_hash
+    def build_filter_hash( muhr_table_settings )
       parts={}
       @query_hash.each do |key,value| 
         if key.starts_with?( INPUT_PREFIX )
-          name = key[INPUT_PREFIX.length..-1]         
-          parts[name]=value if value!=""
+          name = key[INPUT_PREFIX.length..-1].to_sym         
+          if muhr_table_settings.is_column( name ) and value!=""
+            parts[name.to_sym]=value 
+          end
         end        
       end
       parts

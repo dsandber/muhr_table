@@ -6,8 +6,6 @@ module MuhrTable
     def initialize( data, column_types )
       @data=data
       @column_types = column_types
-      @page=nil
-      @records_per_page=nil
     end
 
     def total_pages
@@ -28,15 +26,52 @@ module MuhrTable
       end
     end
 
-    def allow_filtering?( column )
-      true
-    end
-
     def type( column )
       @column_types[column] || :string
     end
 
     private
+
+    def handle_simple_constraint( data_set, name, operator, operand )    
+      ruby filter here
+    end
+
+    def handle_and_constraint( data_set, constraint )
+      subset = data_set
+      constraint.parts.each do |part|
+        partial_subset = handle_constraint( subset, part )
+        subset = subset.intersect( partial_subset )
+        break if subset.empty?
+      end
+      subset
+    end
+
+    
+    def handle_constraint( data_set, constraint )
+      subset = []
+
+      if constraint.is_a?( And )
+        subset = handle_and_constraint( data_set, constraint )
+      elsif constraint.is_a?( Simple )
+        name = constraint.name
+        operand = constraint.operand
+        operator = constraint.operator
+        subset = handle_simple_constraint( data_set, name, operator, operand )
+      elsif constraint.is_a?( IsNull )
+        if constraint.is_null
+          subset = handle_simple_constraint( data_set, name, '=', nil )
+        else
+          subset = handle_simple_constraint( data_set, name, '!=', nil )
+        end
+      elsif constraint.is_a?( Between )
+        # not implemented yet
+      elsif constraint.is_a?( Invalid )
+        # not implemented yet
+      else
+        throw MuhrException.new( "Unknown constraint: " + constraint.class.name )
+      end
+      subset
+    end
 
     def sort_func(row1,row2)
       col1=row1[@sort_column.to_sym]

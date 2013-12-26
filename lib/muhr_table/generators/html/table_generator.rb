@@ -1,4 +1,5 @@
 require_relative 'row_generator'
+require_relative '../../constraints/constraint_builder'
 require_relative '../../html_util'
 
 module MuhrTable
@@ -45,7 +46,6 @@ module MuhrTable
       options = muhr_table_settings.filter_row_input_options
       block = muhr_table_settings.filter_row_input_options_block
       if block
-        print "col -- #{column}, #{column.name}\n"
         column_type = backing.type( column.name )
         options_from_block = block.call( column_type )
         html_merge!( options, options_from_block) if options_from_block
@@ -103,17 +103,22 @@ module MuhrTable
       end
     end
 
-    def get_table_body( muhr_init_data, muhr_table_settings, query_string_handler )
-      tbody_options = muhr_table_settings.tbody_options
+    def set_backing_attributes( muhr_init_data, muhr_table_settings, query_string_handler )
       backing = muhr_init_data.backing
       backing.sort_column=query_string_handler.sort_column || muhr_init_data.sort_column
       backing.sort_dir=query_string_handler.sort_dir || muhr_init_data.sort_dir
-      backing.filter_hash=query_string_handler.filter_hash
+      filter_hash = query_string_handler.build_filter_hash( muhr_table_settings )
+      backing.constraints=ConstraintBuilder.create_constraints( backing, muhr_table_settings, filter_hash )
+    end
+
+    def get_table_body( muhr_init_data, muhr_table_settings, query_string_handler )
+      tbody_options = muhr_table_settings.tbody_options
+      set_backing_attributes( muhr_init_data, muhr_table_settings, query_string_handler )
       number_of_columns = muhr_table_settings.columns.length
 
       content_tag :tbody, tbody_options do
         buf=''.html_safe
-        backing.each_row_on_page(muhr_table_settings) do |row|
+        muhr_init_data.backing.each_row_on_page(muhr_table_settings) do |row|
           buf += muhr_table_settings.before_row_block.call(row, number_of_columns) if muhr_table_settings.before_row_block
 
           row_text = nil
