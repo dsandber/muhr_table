@@ -53,9 +53,8 @@ module MuhrTable
         name = constraint.name
         operand = constraint.operand
         operator = constraint.operator
-        if ['like','ilike'].include?( operator )
-          operand = "%" + operand + "%"
-        end
+        operand = "%" + operand + "%" if operator.include?('like')
+        operator='=' if operator=='=='
         name_to_value_map[name]=operand
         qualified_name = qualify_name( name )
         "#{qualified_name} #{operator} :#{name}"
@@ -84,6 +83,7 @@ module MuhrTable
 
         # where_clause is nil if one of the constraints is invalid
         if where_clause
+          logger.debug "Where is: #{where_clause}, values: #{name_to_value_map}"
           data = @data.where( where_clause, name_to_value_map )
         end
       end

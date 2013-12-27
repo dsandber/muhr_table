@@ -42,28 +42,12 @@ module MuhrTable
       end
     end
 
-    def get_filter_row_input_options( muhr_table_settings, column, backing )
-      options = muhr_table_settings.filter_row_input_options
-      block = muhr_table_settings.filter_row_input_options_block
-      if block
-        column_type = backing.type( column.name )
-        options_from_block = block.call( column_type )
-        html_merge!( options, options_from_block) if options_from_block
-      end
-      options
-    end
-
     def get_filter_row_column( muhr_table_settings, backing, query_string_handler, column )
       content_tag :th do
-        if column.allow_filtering? && backing.allow_filtering?(column.name)
-          input_opts = get_filter_row_input_options( muhr_table_settings, column, backing )
-          filter_string = query_string_handler.get_filter_string_of( column )
-          input_opts.merge!( value:filter_string ) if filter_string
-          input_opts.merge!( name:query_string_handler.get_input_field_name_of( column ) )
-          content_tag :input, '', input_opts
-        else
-          ""
-        end 
+        name = column.name
+        allow_filtering = column.allow_filtering? && backing.allow_filtering?(name)
+        filter_row_column_block = muhr_table_settings.filter_row_column_block
+        filter_row_column_block.call( name, backing.type( name ), allow_filtering, query_string_handler ) if filter_row_column_block
       end 
     end
 

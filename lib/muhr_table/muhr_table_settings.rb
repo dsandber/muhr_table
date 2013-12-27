@@ -10,7 +10,7 @@ module MuhrTable
     attr_reader :columns, :before_row_block, :during_row_block, :after_row_block
     attr_reader :thead_options, :title_row_options, :tbody_options, :table_options, :row_options
     attr_reader :decorator_before_table_block, :decorator_after_table_block, :filter_row_options
-    attr_reader :filter_row_input_options, :filter_row_input_options_block
+    attr_reader :filter_row_column_block
     attr_reader :form_options
 
     # we use filter_row_on? to get the value so this is for writing only
@@ -24,7 +24,6 @@ module MuhrTable
       @title_row_options={}
       @tbody_options={}
       @table_options={}
-      @filter_row_input_options={}
       @filter_row_options={}      
       @form_options={}
     end
@@ -76,9 +75,8 @@ module MuhrTable
       html_merge!( @filter_row_options, options )      
     end
 
-    def filter_row_input( options={}, &block )
-      @filter_row_input_options_block = block
-      html_merge!( @filter_row_input_options, options )      
+    def filter_row_column( &block )
+      @filter_row_column_block = block
     end
 
     def title_row( options )

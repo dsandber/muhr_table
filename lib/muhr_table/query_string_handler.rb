@@ -25,12 +25,24 @@ module MuhrTable
       end
     end
 
-    def get_filter_string_of( column )
-      @query_hash[get_input_field_name_of( column ) ]
+    def get_input_field_value_of( column_name )
+      @query_hash[get_input_field_name_of( column_name ) ]
     end
 
-    def get_input_field_name_of( column )
-      "#{INPUT_PREFIX}#{column.name.to_s}"
+    def get_input_field_value_of_range( column_name, start )
+      @query_hash[get_input_field_name_of_range( column, start )]
+    end
+
+    def get_input_field_name_of( column_name )
+      "#{INPUT_PREFIX}#{column_name.to_s}"
+    end
+
+    def get_input_field_name_of_range( column_name, start )
+      if start
+        get_input_field_name_of( column_name ) + '_from'
+      else
+        get_input_field_name_of( column_name ) + '_to'
+      end
     end
 
     def build_filter_hash( muhr_table_settings )

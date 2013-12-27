@@ -6,7 +6,7 @@ require_relative 'is_null'
 
 module MuhrTable
   # longer operators must come first because this array is searched in order for an operator match
-  OPS = ['<=','>=','<','>','=','!=']
+  OPS = ['<=','>=','<','>','=','!=','!','~']
 
   class ConstraintBuilder
     def self.get_op_and_operand( val )
@@ -20,8 +20,9 @@ module MuhrTable
           break
         end
       end
+      op = '==' if op=='='
       if not op
-        op='='
+        op='~'
         operand=val
       end
       return [op, operand]
@@ -32,7 +33,8 @@ module MuhrTable
 
       # remove spaces around operand
       operand = operand_orig.gsub( ' ','' )
-
+      op = '=' if op_orig == '~'
+      op = '!=' if op_orig == '!'
       num = Float(operand) rescue nil
       [op, num]
     end
@@ -41,6 +43,9 @@ module MuhrTable
       op=nil
       operand = nil
       operand_orig = operand_orig.downcase
+      op_orig = '=' if op_orig=='~'
+      op_orig = '!=' if op_orig=='!'
+
       if op_orig == '=' || op_orig == '!='
         op = op_orig
         if ['yes','true','on'].include?(operand_orig)
@@ -75,12 +80,10 @@ module MuhrTable
           
           if col_type==:string
             op,operand = get_op_and_operand( value )
-            if op == '='
+            if op == '~'
               op = 'ilike' 
-            elsif op == '!='
+            elsif op == '!'
               op = 'not ilike'
-            else
-              op = nil
             end
             
             constraint = Simple.new( key, op, operand )  if op

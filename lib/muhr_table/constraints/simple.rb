@@ -1,6 +1,6 @@
 module MuhrTable
   class Simple < Constraint
-    OPERATORS=['<','>','<=','>=','=','!=','like','ilike','not like', 'not ilike']
+    OPERATORS=['<','>','<=','>=','==','!=','like','ilike','not like', 'not ilike']
     attr_reader :name, :operand, :operator
 
     def initialize(name, operator, operand)
@@ -9,6 +9,10 @@ module MuhrTable
       @name=name
       @operator=operator
       @operand=operand
+    end
+
+    def to_s
+      "#{@name} #{@operator} #{@operand}"
     end
   end
 end

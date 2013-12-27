@@ -7,5 +7,9 @@ module MuhrTable
     def initialize( parts )
       @parts=parts
     end
+
+    def to_s
+      '( ' + @parts.join( ' and ' ) + ' )'
+    end
   end
 end

@@ -14,7 +14,9 @@ module MuhrTable
     end
 
     def each_row_on_page(muhr_table_data)
-      data = sort(@data)
+      data = @data      
+      data = handle_constraint( Set.new(data), @constraints ) if @constraints
+      data = sort(data)
       # show all the records if page or records per page hasn't been set
       range = 0...data.length
       if @page && @records_per_page
@@ -32,15 +34,24 @@ module MuhrTable
 
     private
 
-    def handle_simple_constraint( data_set, name, operator, operand )    
-      ruby filter here
+    def handle_simple_constraint( data_set, name, operator_orig, operand_orig )    
+      operator_method = operator_orig.to_sym
+      operand = operand_orig
+      
+      if operator_orig.include?('like')
+        operator_method = operator_orig.starts_with?('not') ? :'!~' : :'=~'
+        case_insensitive = operator_orig.include?('ilike')
+        operand = Regexp.new( operand_orig, case_insensitive )
+      end
+      filtered_data = data_set.select {|r| r[name].method(operator_method).call(operand) }
+      Set.new( filtered_data )
     end
 
     def handle_and_constraint( data_set, constraint )
       subset = data_set
       constraint.parts.each do |part|
         partial_subset = handle_constraint( subset, part )
-        subset = subset.intersect( partial_subset )
+        subset = subset.intersection( partial_subset )
         break if subset.empty?
       end
       subset
@@ -92,7 +103,7 @@ module MuhrTable
 
     def sort(data)
       sorted = data
-      sorted = @data.sort{ |x,y| sort_func(x,y) } if @sort_column
+      sorted = data.sort{ |x,y| sort_func(x,y) } if @sort_column
       sorted
     end
   end
