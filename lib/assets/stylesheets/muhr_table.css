@@ -4,3 +4,17 @@
   width: 1px; 
   height: 1px;
 }
+
+.muhr_date {
+  font-family:monospace;  
+}
+
+.pagination {
+  margin: 0px;
+  float: left;
+}
+
+.pagination_status {
+  font-weight: bold;
+  float: right;
+}

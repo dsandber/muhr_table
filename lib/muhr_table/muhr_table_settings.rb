@@ -8,24 +8,13 @@ module MuhrTable
     include MuhrTable::HTMLUtil
 
     attr_reader :columns, :before_row_block, :during_row_block, :after_row_block
-    attr_reader :thead_options, :title_row_options, :tbody_options, :table_options, :row_options
-    attr_reader :decorator_before_table_block, :decorator_after_table_block, :filter_row_options
-    attr_reader :filter_row_column_block
-    attr_reader :form_options
-
-    # we use filter_row_on? to get the value so this is for writing only
-    attr_writer :filter_row_on
+    attr_reader :decorator_before_table_block, :decorator_after_table_block
+    attr_reader :filter_row_column_block, :row_options
 
     def initialize
       @columns=[]
       @name_to_column={}
       @row_options={}
-      @thead_options={}
-      @title_row_options={}
-      @tbody_options={}
-      @table_options={}
-      @filter_row_options={}      
-      @form_options={}
     end
 
     def load_dsl( block )
@@ -54,10 +43,6 @@ module MuhrTable
       @during_row_block = block
     end
 
-    def filter_row_on?
-      @filter_row_on
-    end
-
     def column( name, options={}, &block)
       check_is_hash( options )
       column = Column.new( name, options, block )
@@ -65,38 +50,8 @@ module MuhrTable
       @name_to_column[name] = column
     end
 
-    def table( options )
-      check_is_hash( options )
-      html_merge!( @table_options, options )
-    end
-
-    def filter_row( options )
-      check_is_hash( options )
-      html_merge!( @filter_row_options, options )      
-    end
-
     def filter_row_column( &block )
       @filter_row_column_block = block
-    end
-
-    def title_row( options )
-      check_is_hash( options )
-      html_merge!( @title_row_options, options )
-    end
-
-    def thead( options )
-      check_is_hash( options )
-      html_merge!( @thead_options, options )
-    end
-
-    def form( options )
-      check_is_hash( options )
-      html_merge!( @form_options, options )
-    end
-
-    def tbody( options )
-      check_is_hash( options )
-      html_merge!( @tbody_options, options )
     end
 
     def check_is_hash( options )

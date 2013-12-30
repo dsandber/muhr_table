@@ -8,15 +8,17 @@ module MuhrTable
       @column_types = column_types
     end
 
-    def total_pages
-      total_pages = 1      
-      total_pages = (data.length.to_f / @records_per_page).ceil if @records_per_page
+    # run_query needs to set @offset, @total_pages, and @total_count and return the final query results
+    def run_query
+      data = @data
+      data = handle_constraint( Set.new(data), @constraints ) if @constraints
+      sort(data)
     end
 
     def each_row_on_page(muhr_table_data)
-      data = @data      
-      data = handle_constraint( Set.new(data), @constraints ) if @constraints
-      data = sort(data)
+      run_query_if_havent
+      data = @query_result
+
       # show all the records if page or records per page hasn't been set
       range = 0...data.length
       if @page && @records_per_page
@@ -74,8 +76,6 @@ module MuhrTable
         else
           subset = handle_simple_constraint( data_set, name, '!=', nil )
         end
-      elsif constraint.is_a?( Between )
-        # not implemented yet
       elsif constraint.is_a?( Invalid )
         # not implemented yet
       else

@@ -12,13 +12,6 @@ module MuhrTable
         include MuhrTable::ActionControllerMethods
       end
     end
-
-    initializer 'muhr_table.action_view' do |app|
-      ActiveSupport.on_load :action_view do
-        require 'muhr_table/action_view_methods'
-        include MuhrTable::ActionViewMethods
-      end
-    end
   end
 end
 

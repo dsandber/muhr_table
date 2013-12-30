@@ -1,0 +1,19 @@
+- html = @table.generator :html
+%form.muhr_form.time_zone_form.auto_refresh_form{method:'get',action:html.form_url}
+  %input.muhr_table_submit{type:'submit',tabindex:'-1',value:"!!! You didn't include muhr_table.css !!!"}
+  %table.table-striped.table-bordered.table.muhr-table
+    %thead.muhr_thead
+      %tr.muhr_title_row
+        = html.title_row
+      - if html.filter_row?
+        %tr.muhr_filter_row
+          = html.filter_row
+    %tbody
+      = html.rows
+    %tfoot
+      %tr
+        %td{colspan:html.num_columns}
+          %div.pagination
+            = paginate @table, :theme => 'twitter-bootstrap-3'
+          %div.pagination_status
+            = page_entries_info @table

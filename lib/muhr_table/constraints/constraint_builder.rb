@@ -1,5 +1,4 @@
 require_relative 'and'
-require_relative 'between'
 require_relative 'invalid'
 require_relative 'simple'
 require_relative 'is_null'
@@ -33,7 +32,7 @@ module MuhrTable
 
       # remove spaces around operand
       operand = operand_orig.gsub( ' ','' )
-      op = '=' if op_orig == '~'
+      op = '==' if op_orig == '~'
       op = '!=' if op_orig == '!'
       num = Float(operand) rescue nil
       [op, num]
@@ -43,7 +42,7 @@ module MuhrTable
       op=nil
       operand = nil
       operand_orig = operand_orig.downcase
-      op_orig = '=' if op_orig=='~'
+      op_orig = '==' if op_orig=='~'
       op_orig = '!=' if op_orig=='!'
 
       if op_orig == '=' || op_orig == '!='
@@ -57,7 +56,12 @@ module MuhrTable
 
       [op, operand]
     end
-    
+
+    def self.parse_date( text, from )
+      val = Time.zone.parse( text ) rescue nil
+      val = from ? val.beginning_of_day : val.end_of_day if val
+    end
+
     def self.create_constraints( backing, muhr_table_settings, filter_hash )
       simple_constraints=[]
 
@@ -92,7 +96,24 @@ module MuhrTable
             op, operand = boolean_get_op_and_operand( op_orig, operand_orig )
             constraint = Simple.new( key, op, operand ) if op and operand
           elsif col_type==:datetime
-            constraint = Between.new( key, value[0], value[1] )
+            from_value=value['from']
+            to_value=value['to']
+            from = parse_date( from_value, true ) if from_value
+            to = parse_date( to_value, false ) if to_value
+            if (from_value && !from) || (to_value && !to)
+              # one of the dates is invalid, so use default Invalid constraint
+            else
+              constraints=[]
+              constraints << Simple.new( key, '>=', from) if from
+              constraints << Simple.new( key, '<=', to) if to
+              if constraints.length==0
+                throw MuhrException.new( 'Datetime has no constraints' )
+              elsif constraints.length==1                
+                constraint = constraints[0]
+              else
+                constraint = And.new( constraints )
+              end              
+            end
           end
         end
         simple_constraints << constraint

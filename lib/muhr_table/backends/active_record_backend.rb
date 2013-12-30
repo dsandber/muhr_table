@@ -12,11 +12,6 @@ module MuhrTable
       @column_to_model_map = opts[:column_to_model_map] || {}
     end
 
-    def total_pages
-      total_pages = 1      
-      total_pages = (data.count.to_f / @records_per_page).ceil if @records_per_page
-    end
-
     def qualify_name( name )
       qualified_name = name
       model = @column_to_model_map[name]
@@ -46,6 +41,17 @@ module MuhrTable
       sql
     end
 
+    def get_unique_name( name_to_value_map, name )
+      final_name = name
+      num=1
+      loop do
+        break unless name_to_value_map.include?( final_name )
+        num+=1
+        final_name = (name.to_s + num.to_s).to_sym
+      end
+      final_name
+    end
+
     def handle_constraint( constraint, name_to_value_map )
       if constraint.is_a?( And )
         handle_and_constraint( constraint, name_to_value_map )
@@ -55,9 +61,10 @@ module MuhrTable
         operator = constraint.operator
         operand = "%" + operand + "%" if operator.include?('like')
         operator='=' if operator=='=='
-        name_to_value_map[name]=operand
+        place_holder_name = get_unique_name( name_to_value_map, name )
+        name_to_value_map[place_holder_name]=operand
         qualified_name = qualify_name( name )
-        "#{qualified_name} #{operator} :#{name}"
+        "#{qualified_name} #{operator} :#{place_holder_name}"
       elsif constraint.is_a?( IsNull )
         qualified_name = qualify_name( constraint.name )
         if constraint.is_null
@@ -65,8 +72,6 @@ module MuhrTable
         else
           "#{qualified_name} is not null"
         end
-      elsif constraint.is_a?( Between )
-        nil
       elsif constraint.is_a?( Invalid )
         nil
       else
@@ -74,35 +79,44 @@ module MuhrTable
       end
     end
 
-    def each_row_on_page(muhr_table_data)
-      name_to_value_map={}
-      data = @data
+    # run_query needs to set @offset, @total_pages, and @total_count and return the final query results
+    def run_query
+      results = @data
       if @constraints
-        data = nil
+        results = []
+        name_to_value_map={}
         where_clause = handle_constraint( @constraints, name_to_value_map )
 
         # where_clause is nil if one of the constraints is invalid
         if where_clause
           logger.debug "Where is: #{where_clause}, values: #{name_to_value_map}"
-          data = @data.where( where_clause, name_to_value_map )
+          results = @data.where( where_clause, name_to_value_map )
         end
       end
+      @total_count = results.count
+      @total_pages = calc_total_page_from_total_count( @total_count )
+      @offset = 0
 
-      if data
+      if @total_count > 0
         if @page && @records_per_page
-          offset = (@page-1) * records_per_page
-          data = data.limit(@records_per_page).offset(offset)
+          @page = @total_pages if @page > @total_pages 
+          @page = 1 if @page < 1
+          @offset = (@page-1) * records_per_page
+          results = results.limit(@records_per_page).offset(@offset)
         end
         if @sort_column
           sort_dir = @sort_dir || 'asc'
-          data = data.order( @sort_column + ' ' + sort_dir )
-        end
-        data.all.each do |row|
-          yield row
+          results = results.order( @sort_column + ' ' + sort_dir )
         end
       end
+      print "page is: #{@page}, offset is: #{@offset}\n"
+      if results == [] 
+        []
+      else
+        results.all
+      end
     end
-    
+
     def type( column_name )
       model = @column_to_model_map[column_name]
       if model

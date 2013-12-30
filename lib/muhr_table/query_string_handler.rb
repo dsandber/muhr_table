@@ -1,16 +1,16 @@
 module MuhrTable
-  INPUT_PREFIX="muhr_f_"
+  INPUT_PREFIX=""
 
   class QueryStringHandler
     attr_reader :sort_column, :sort_dir
 
-    def initialize(view)
-      @view=view
+    def initialize(controller)
+      @controller=controller
       parse_query_string
     end
 
     def parse_query_string
-      @query_hash = Rack::Utils.parse_nested_query @view.request.query_string
+      @query_hash = Rack::Utils.parse_nested_query @controller.request.query_string
       @sort_dir=nil
       @sort_column=nil
       sort = @query_hash['sort']
@@ -25,12 +25,16 @@ module MuhrTable
       end
     end
 
+    def page
+      @query_hash['page'].to_i
+    end
+
     def get_input_field_value_of( column_name )
       @query_hash[get_input_field_name_of( column_name ) ]
     end
 
     def get_input_field_value_of_range( column_name, start )
-      @query_hash[get_input_field_name_of_range( column, start )]
+      @query_hash[get_input_field_name_of_range( column_name, start )]
     end
 
     def get_input_field_name_of( column_name )
@@ -51,7 +55,17 @@ module MuhrTable
         if key.starts_with?( INPUT_PREFIX )
           name = key[INPUT_PREFIX.length..-1].to_sym         
           if muhr_table_settings.is_column( name ) and value!=""
-            parts[name.to_sym]=value 
+            parts[name]=value 
+          elsif name =~ /(.*)_(to|from)/
+            name = $1.to_sym
+            if muhr_table_settings.is_column( name ) and value!=""
+              from_to_hash = parts[ name ]
+              if !from_to_hash
+                from_to_hash = {}
+                parts[name] = from_to_hash
+              end
+              from_to_hash[$2] = value
+            end
           end
         end        
       end
@@ -59,7 +73,7 @@ module MuhrTable
     end
 
     def get_form_url
-      '?' + @view.request.query_string
+      '?' + @controller.request.query_string
     end
 
     # there may be a default sort in place that wasn't specified by the query string, so we need to pass in the current sort info

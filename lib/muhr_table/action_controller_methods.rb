@@ -1,13 +1,17 @@
-require 'muhr_table/backends/array_backend'
-require 'muhr_table/backends/active_record_backend'
-require 'muhr_table/muhr_exception'
-require 'muhr_table/muhr_init_data'
+require_relative 'backends/array_backend'
+require_relative 'backends/active_record_backend'
+require_relative 'muhr_exception'
+require_relative 'muhr_facade'
+require_relative 'muhr_init_data'
+require_relative 'option_checker'
 
 module MuhrTable
   module ActionControllerMethods
-    def muhr_init( backing, opts )
-     ensure_valid_options opts, [:backing_opts, :per_page, :sort_column, :sort_dir]
+    include OptionChecker
 
+    def muhr_init( backing, opts )
+      ensure_valid_options opts, [:backing_opts, :sort_column, :sort_dir]
+      
       backing_opts = opts.delete(:backing_opts) || {}
 
       if backing.is_a?(Backend)
@@ -19,7 +23,8 @@ module MuhrTable
       else
         raise MuhrException.new('Backing must be an ActiveRecord, Relation, or Backend' )
       end     
-      MuhrInitData.new( backing, opts )
+      muhr_init_data = MuhrInitData.new( backing, opts )
+      MuhrFacade.new( muhr_init_data, self )
     end
 
     def muhr_array_backend( data, column_types )
