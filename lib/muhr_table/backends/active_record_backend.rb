@@ -94,7 +94,7 @@ module MuhrTable
         end
       end
       @total_count = results.count
-      @total_pages = calc_total_page_from_total_count( @total_count )
+      @total_pages = calc_total_pages_from_total_count( @total_count )
       @offset = 0
 
       if @total_count > 0

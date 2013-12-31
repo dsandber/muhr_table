@@ -21,6 +21,7 @@ module MuhrTable
       @backing.sort_dir=@query_string_handler.sort_dir || @muhr_init_data.sort_dir
       filter_hash = @query_string_handler.build_filter_hash( @muhr_table_settings )
       @backing.constraints=ConstraintBuilder.create_constraints( @backing, @muhr_table_settings, filter_hash )
+      @backing.muhr_table_settings = @muhr_table_settings
     end
     
     def generate(format, options)

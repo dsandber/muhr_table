@@ -3,30 +3,41 @@ require_relative 'hash_with_very_indifferent_access'
 
 module MuhrTable
   class ArrayBackend < Backend    
-    def initialize( data, column_types )
+    def initialize( data, column_types, options )
       @data=data
       @column_types = column_types
+      @options=options
     end
 
     # run_query needs to set @offset, @total_pages, and @total_count and return the final query results
     def run_query
-      data = @data
-      data = handle_constraint( Set.new(data), @constraints ) if @constraints
-      sort(data)
+      results = @data
+      results = handle_constraint( Set.new(results), @constraints ) if @constraints
+      results = sort(results)
+
+      @total_count = results.count
+      @total_pages = @options[:total_pages_override] || calc_total_pages_from_total_count( @total_count )
+      @page = @options[:page_override] || @page
+      @records_per_page = @options[:records_per_page_override] || @total_count
+      @offset = 0
+
+      # show all the records if page or records per page hasn't been set
+      @range = 0...@total_count
+      if @page && @records_per_page 
+        @page = @total_pages if @page > @total_pages 
+        @page = 1 if @page < 1
+        @offset = (@page-1) * @records_per_page
+        @range = @offset...(@offset+@records_per_page)
+      end
+      results
     end
 
-    def each_row_on_page(muhr_table_data)
+    def each_row_on_page
       run_query_if_havent
       data = @query_result
 
-      # show all the records if page or records per page hasn't been set
-      range = 0...data.length
-      if @page && @records_per_page
-        offset = (@page-1) * records_per_page
-        range = offset...(offset+records_per_page)
-      end
-      data[range].each do |row|
-        yield HashWithVeryIndifferentAccess.new(row, muhr_table_data )
+      data[@range].each do |row|
+        yield HashWithVeryIndifferentAccess.new(row, @muhr_table_settings )
       end
     end
 

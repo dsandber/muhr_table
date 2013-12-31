@@ -9,7 +9,7 @@ module MuhrTable
   module ActionControllerMethods
     include OptionChecker
 
-    def muhr_init( backing, opts )
+    def muhr_init( backing, opts={} )
       ensure_valid_options opts, [:backing_opts, :sort_column, :sort_dir]
       
       backing_opts = opts.delete(:backing_opts) || {}
@@ -27,8 +27,8 @@ module MuhrTable
       MuhrFacade.new( muhr_init_data, self )
     end
 
-    def muhr_array_backend( data, column_types )
-      ArrayBackend.new( data, column_types )
+    def muhr_array_backend( data, column_types, options={} )
+      ArrayBackend.new( data, column_types, options )
     end
   end
 end 

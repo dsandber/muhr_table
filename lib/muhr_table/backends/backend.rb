@@ -1,6 +1,6 @@
 module MuhrTable
   class Backend
-    attr_writer :sort_column, :sort_dir, :constraints
+    attr_writer :sort_column, :sort_dir, :constraints, :muhr_table_settings
     attr_accessor :page, :records_per_page
     attr_reader :total_pages
 
@@ -36,7 +36,7 @@ module MuhrTable
       @total_pages
     end
 
-    def calc_total_page_from_total_count( total_count )
+    def calc_total_pages_from_total_count( total_count )
       total_pages = 1      
       total_pages = (total_count.to_f / @records_per_page).ceil if @records_per_page
       total_pages

@@ -11,12 +11,13 @@ module MuhrTable
     include HTMLUtil
 
     def initialize( muhr_init_data, muhr_table_settings, query_string_handler, options )
-      ensure_valid_options options, [:filter_row_on]
+      ensure_valid_options options, [:filter_row_on, :pagination_status_on]
 
       @muhr_init_data = muhr_init_data
       @muhr_table_settings = muhr_table_settings
       @query_string_handler = query_string_handler
       @filter_row_on = options[:filter_row_on] != false
+      @pagination_status_on = options[:pagination_status_on] != false
     end
 
     def title_row
@@ -41,6 +42,10 @@ module MuhrTable
 
     def filter_row?
       @filter_row_on
+    end
+
+    def pagination_status?
+      @pagination_status_on
     end
 
     def rows
