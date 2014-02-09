@@ -90,18 +90,29 @@ module MuhrTable
       [col,opts]
     end
 
+    def get_html_options( hsh )
+      html_options = hsh[:html] || {}
+      html_class = hsh[:class]
+      if html_class
+        html_options2 = {class:html_class}
+        html_merge!( html_options, html_options2 )
+      end
+      html_options
+    end
+
     def generate_row_column(row, col)
-      td_options = col.opts.clone
+      html_options = get_html_options( col.opts )
       content = nil
 
       if col.block
-        content, opts = get_row_col_and_opts( col.block.call(row) )
-        td_options.merge!(opts)
+        content, html_options2 = get_row_col_and_opts( col.block.call(row) )
+        html_options2 = get_html_options( html_options2 )
+        html_merge!( html_options, html_options2 )
       else
         content = row[col.name] 
       end
       content ||= (col.null_text || '').html_safe 
-      content_tag :td, content, td_options 
+      content_tag :td, content, html_options 
     end
 
     def generate_row( row )

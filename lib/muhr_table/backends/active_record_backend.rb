@@ -109,7 +109,7 @@ module MuhrTable
           results = results.order( @sort_column + ' ' + sort_dir )
         end
       end
-      print "page is: #{@page}, offset is: #{@offset}\n"
+      # print "page is: #{@page}, offset is: #{@offset}\n"
       if results == [] 
         []
       else
