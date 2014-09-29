@@ -35,6 +35,11 @@ module MuhrTable
 
       # we have to set the records per page before we calculate page numbers
       @backing.records_per_page = options[:per_page] || 10
+
+      # It's not clear whether we should pass this into the generator (which checks that it only sees parameters
+      # it understands) or erase it before it gets to the generator.  For now, we erase it here.
+      options.delete(:per_page)
+
       @backing.page = @query_string_handler.page
       return HTMLGenerator.new( @muhr_init_data, @muhr_table_settings, @query_string_handler, options )
     end
@@ -72,6 +77,11 @@ module MuhrTable
     # for kaminari
     def last_page?
       current_page == total_pages
+    end
+
+    # for kaminari
+    def entry_name
+      "entry"
     end
 
     # for kaminari
